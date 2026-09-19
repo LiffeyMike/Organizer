@@ -1,24 +1,17 @@
 plugins {
-    java
-    id("org.springframework.boot") version "4.1.1"
-    id("io.spring.dependency-management") version "1.1.7"
+    id("com.organizer.java-conventions")
+    alias(libs.plugins.spring.boot)
 }
 
 group = "com.organizer"
 version = "0.0.1-SNAPSHOT"
 
-java {
-    toolchain { languageVersion = JavaLanguageVersion.of(21) }
-}
-
-repositories { mavenCentral() }
-
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-graphql")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation(libs.spring.boot.starter.graphql)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.webmvc)
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(libs.spring.boot.starter.test)
     testImplementation("org.springframework.boot:spring-boot-starter-graphql-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework:spring-webflux")
