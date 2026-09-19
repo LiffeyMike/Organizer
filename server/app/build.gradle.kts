@@ -8,6 +8,7 @@ version = "0.0.1-SNAPSHOT"
 
 dependencies {
     implementation(project(":application"))
+    implementation(project(":adapter-graphql"))
 
     implementation(libs.spring.boot.starter.graphql)
     implementation(libs.spring.boot.starter.security)

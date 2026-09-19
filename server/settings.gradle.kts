@@ -12,4 +12,5 @@ rootProject.name = "organizer"
 include("core-config")
 include("domain")
 include("application")
+include("adapter-graphql")
 include("app")
