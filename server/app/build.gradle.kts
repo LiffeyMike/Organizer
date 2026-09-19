@@ -7,6 +7,8 @@ group = "com.organizer"
 version = "0.0.1-SNAPSHOT"
 
 dependencies {
+    implementation(project(":application"))
+
     implementation(libs.spring.boot.starter.graphql)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.webmvc)
