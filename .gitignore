@@ -1,0 +1,19 @@
+docs/
+
+# Gradle
+server/.gradle/
+server/**/build
+!server/gradle/wrapper/gradle-wrapper.jar
+
+# Eclipse/Buildship metadata 
+server/**/.classpath
+server/**/.factorypath
+server/**/.project
+server/**/.settings/
+server/**/.apt_generated
+server/**/.sts4-cache
+server/**/bin/
+
+# Editor
+**/kls_database.db
+
