@@ -9,6 +9,7 @@ version = "0.0.1-SNAPSHOT"
 dependencies {
     implementation(project(":application"))
     implementation(project(":adapter-graphql"))
+    implementation(project(":adapter-persistence"))
 
     implementation(libs.spring.boot.starter.graphql)
     implementation(libs.spring.boot.starter.security)
@@ -18,6 +19,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-graphql-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework:spring-webflux")
+    testImplementation(libs.spring.boot.testcontainers)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.junit)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

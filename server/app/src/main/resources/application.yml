@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/organizer}
+    username: ${SPRING_DATASOURCE_USERNAME:organizer}
+    password: ${SPRING_DATASOURCE_PASSWORD:organizer}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  graphql:
+    graphiql:
+      enabled: true
