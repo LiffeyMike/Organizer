@@ -1,0 +1,30 @@
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type UserError {
+  field: [String!]
+  message: String!
+  code: UserErrorCode!
+}
+
+enum UserErrorCode {
+  NOT_FOUND
+  FORBIDDEN
+  VALIDATION
+  CONFLICT
+  INVALID_CREDENTIALS
+}
+
+type Query {
+  ping: String!
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+}

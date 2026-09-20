@@ -1,7 +1,10 @@
 docs/
 
+# Env
+.env
+
 # Gradle
-server/.gradle/
+server/**/.gradle/
 server/**/build
 !server/gradle/wrapper/gradle-wrapper.jar
 
