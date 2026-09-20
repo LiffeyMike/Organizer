@@ -6,5 +6,6 @@
 .project
 .settings/
 .apt_generated
-.sts4_cache
+.sts4-cache
+kls_database.db
 bin/

@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":application"))
     implementation(project(":adapter-graphql"))
     implementation(project(":adapter-persistence"))
+    implementation(project(":adapter-security"))
 
     implementation(libs.spring.boot.starter.graphql)
     implementation(libs.spring.boot.starter.webmvc)

@@ -6,7 +6,9 @@ dependencies {
     implementation(project(":application"))
     implementation(project(":domain"))
     implementation(project(":core-config"))
+    implementation(project(":adapter-security"))
     implementation(libs.spring.boot.starter.graphql)
+    implementation(libs.spring.boot.starter.websocket)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation("org.springframework.boot:spring-boot-starter-graphql-test")
