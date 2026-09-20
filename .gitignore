@@ -1,5 +1,8 @@
 docs/
 
+# Env
+.env*
+
 # Gradle
 server/**/.gradle/
 server/**/build

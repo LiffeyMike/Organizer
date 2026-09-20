@@ -1,0 +1,10 @@
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+.classpath
+.factorypath
+.project
+.settings/
+.apt_generated
+.sts4_cache
+bin/
