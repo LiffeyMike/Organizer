@@ -12,6 +12,8 @@ dependencies {
     implementation(libs.flyway.core)
     implementation(libs.flyway.postgres)
     implementation(libs.spring.boot.flyway)
+    implementation(libs.mapstruct)
+    annotationProcessor(libs.mapstruct.processor)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.boot.testcontainers)
