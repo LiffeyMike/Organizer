@@ -1,22 +1,25 @@
 package com.organizer.adapter.persistence.user;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.domain.user.Email;
 import com.organizer.domain.user.HashedPassword;
 import com.organizer.domain.user.User;
 
-@Mapper(componentModel = "spring")
-interface UserMapper {
+@Component
+class UserMapper {
 
-  @Mapping(target = "id", expression = "java(new UserId(entity.getId()))")
-  @Mapping(target = "email", expression = "java(new Email(entity.getEmail()))")
-  @Mapping(target = "password", expression = "java(new HashedPassword(entity.getPasswordHash()))")
-  User toDomain(JpaUser entity);
+  User toDomain(JpaUser entity) {
+    return new User(
+        new UserId(entity.getId()),
+        new Email(entity.getEmail()),
+        new HashedPassword(entity.getPasswordHash()),
+        entity.getDisplayName(),
+        entity.getCreatedAt());
+  }
 
-  default JpaUser toEntity(User user) {
+  JpaUser toEntity(User user) {
     JpaUser entity = new JpaUser();
 
     entity.setId(user.id().id());

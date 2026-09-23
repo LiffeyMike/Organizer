@@ -12,9 +12,7 @@ dependencies {
     implementation(libs.flyway.core)
     implementation(libs.flyway.postgres)
     implementation(libs.spring.boot.flyway)
-    implementation(libs.mapstruct)
     compileOnly(libs.lombok)
-    annotationProcessor(libs.mapstruct.processor)
     annotationProcessor(libs.lombok)
 
     testImplementation(libs.spring.boot.starter.test)

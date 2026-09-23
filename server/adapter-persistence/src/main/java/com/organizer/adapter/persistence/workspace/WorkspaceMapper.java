@@ -1,22 +1,25 @@
 package com.organizer.adapter.persistence.workspace;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.coreconfig.id.WorkspaceId;
 import com.organizer.domain.workspace.Workspace;
 import com.organizer.domain.workspace.WorkspaceType;
 
-@Mapper(componentModel = "spring")
-interface WorkspaceMapper {
+@Component
+class WorkspaceMapper {
 
-  @Mapping(target = "id", expression = "java(new WorkspaceId(entity.getId()))")
-  @Mapping(target = "type", expression = "java(WorkspaceType.valueOf(entity.getType()))")
-  @Mapping(target = "createdBy", expression = "java(new UserId(entity.getCreatedBy()))")
-  Workspace toDomain(JpaWorkspace entity);
+  Workspace toDomain(JpaWorkspace entity) {
+    return new Workspace(
+        new WorkspaceId(entity.getId()),
+        entity.getName(),
+        WorkspaceType.valueOf(entity.getType()),
+        new UserId(entity.getCreatedBy()),
+        entity.getCreatedAt());
+  }
 
-  default JpaWorkspace toEntity(Workspace workspace) {
+  JpaWorkspace toEntity(Workspace workspace) {
     JpaWorkspace entity = new JpaWorkspace();
 
     entity.setId(workspace.id().id());

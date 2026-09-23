@@ -1,7 +1,6 @@
 package com.organizer.adapter.persistence.workspace;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 
 import com.organizer.coreconfig.id.MembershipId;
 import com.organizer.coreconfig.id.WorkspaceId;
@@ -9,16 +8,19 @@ import com.organizer.coreconfig.id.UserId;
 import com.organizer.domain.workspace.Role;
 import com.organizer.domain.workspace.WorkspaceMembership;;
 
-@Mapper(componentModel = "spring")
-interface WorkspaceMembershipMapper {
+@Component
+class WorkspaceMembershipMapper {
 
-  @Mapping(target = "id", expression = "java(new MembershipId(entity.getId()))")
-  @Mapping(target = "workspaceId", expression = "java(new WorkspaceId(entity.getWorkspaceId()))")
-  @Mapping(target = "userId", expression = "java(new UserId(entity.getUserId()))")
-  @Mapping(target = "role", expression = "java(Role.valueOf(entity.getRole()))")
-  WorkspaceMembership toDomain(JpaWorkspaceMembership entity);
+  WorkspaceMembership toDomain(JpaWorkspaceMembership entity) {
+    return new WorkspaceMembership(
+        new MembershipId(entity.getId()),
+        new WorkspaceId(entity.getWorkspaceId()),
+        new UserId(entity.getUserId()),
+        Role.valueOf(entity.getRole()),
+        entity.getJoinedAt());
+  }
 
-  default JpaWorkspaceMembership toEntity(WorkspaceMembership membership) {
+  JpaWorkspaceMembership toEntity(WorkspaceMembership membership) {
     JpaWorkspaceMembership entity = new JpaWorkspaceMembership();
 
     entity.setId(membership.id().id());
