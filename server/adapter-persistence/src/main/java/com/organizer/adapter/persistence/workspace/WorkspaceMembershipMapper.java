@@ -19,8 +19,14 @@ interface WorkspaceMembershipMapper {
   WorkspaceMembership toDomain(JpaWorkspaceMembership entity);
 
   default JpaWorkspaceMembership toEntity(WorkspaceMembership membership) {
-    return new JpaWorkspaceMembership(
-        membership.id().id(), membership.workspaceId().id(), membership.userId().id(), membership.role().name(),
-        membership.joinedAt());
+    JpaWorkspaceMembership entity = new JpaWorkspaceMembership();
+
+    entity.setId(membership.id().id());
+    entity.setWorkspaceId(membership.workspaceId().id());
+    entity.setUserId(membership.userId().id());
+    entity.setRole(membership.role().name());
+    entity.setJoinedAt(membership.joinedAt());
+
+    return entity;
   }
 }

@@ -8,6 +8,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class JpaUser {
@@ -27,35 +34,4 @@ public class JpaUser {
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
-  protected JpaUser() {
-
-  }
-
-  public JpaUser(UUID id, String email, String passwordHash, String displayName, Instant createdAt) {
-    this.id = id;
-    this.email = email;
-    this.passwordHash = passwordHash;
-    this.displayName = displayName;
-    this.createdAt = createdAt;
-  }
-
-  public UUID getId() {
-    return id;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public String getPasswordHash() {
-    return passwordHash;
-  }
-
-  public String getDisplayName() {
-    return displayName;
-  }
-
-  public Instant getCreatedAt() {
-    return createdAt;
-  }
 }

@@ -17,8 +17,14 @@ interface WorkspaceMapper {
   Workspace toDomain(JpaWorkspace entity);
 
   default JpaWorkspace toEntity(Workspace workspace) {
-    return new JpaWorkspace(
-        workspace.id().id(), workspace.name(), workspace.type().name(), workspace.createdBy().id(),
-        workspace.createdAt());
+    JpaWorkspace entity = new JpaWorkspace();
+
+    entity.setId(workspace.id().id());
+    entity.setName(workspace.name());
+    entity.setType(workspace.type().name());
+    entity.setCreatedBy(workspace.createdBy().id());
+    entity.setCreatedAt(workspace.createdAt());
+
+    return entity;
   }
 }

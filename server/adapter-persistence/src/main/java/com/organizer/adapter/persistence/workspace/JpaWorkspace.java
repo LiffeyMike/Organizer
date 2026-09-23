@@ -8,6 +8,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "workspaces")
 public class JpaWorkspace {
@@ -26,37 +33,5 @@ public class JpaWorkspace {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
-
-  protected JpaWorkspace() {
-
-  }
-
-  public JpaWorkspace(UUID id, String name, String type, UUID createdBy, Instant createdAt) {
-    this.id = id;
-    this.name = name;
-    this.type = type;
-    this.createdBy = createdBy;
-    this.createdAt = createdAt;
-  }
-
-  public UUID getId() {
-    return id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getType() {
-    return type;
-  }
-
-  public UUID getCreatedBy() {
-    return createdBy;
-  }
-
-  public Instant getCreatedAt() {
-    return createdAt;
-  }
 
 }

@@ -17,7 +17,14 @@ interface UserMapper {
   User toDomain(JpaUser entity);
 
   default JpaUser toEntity(User user) {
-    return new JpaUser(
-        user.id().id(), user.email().value(), user.password().value(), user.displayName(), user.createdAt());
+    JpaUser entity = new JpaUser();
+
+    entity.setId(user.id().id());
+    entity.setEmail(user.email().value());
+    entity.setPasswordHash(user.password().value());
+    entity.setDisplayName(user.displayName());
+    entity.setCreatedAt(user.createdAt());
+
+    return entity;
   }
 }

@@ -6,6 +6,7 @@ testcontainers = "1.20.4"
 assertj = "3.26.3"
 jjwt = "0.12.6"
 mapstruct = "1.6.3"
+lombok = "1.18.36"
 
 [libraries]
 spring-boot-starter-graphql = { module = "org.springframework.boot:spring-boot-starter-graphql" }
@@ -24,6 +25,7 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgres = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
