@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-interface JpaRefeshTokenRepository extends JpaRepository<JpaRefreshToken, UUID> {
+interface JpaRefreshTokenRepository extends JpaRepository<JpaRefreshToken, UUID> {
   Optional<JpaRefreshToken> findByTokenHash(String tokenHash);
 
   @Transactional
