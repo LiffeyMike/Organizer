@@ -14,7 +14,7 @@ interface JpaRefreshTokenRepository extends JpaRepository<JpaRefreshToken, UUID>
   Optional<JpaRefreshToken> findByTokenHash(String tokenHash);
 
   @Transactional
-  @Modifying
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("""
         UPDATE JpaRefreshToken t SET t.revokedAt = :revokedAt
           WHERE t.familyId = :familyId AND t.revokedAt IS NULL
@@ -22,7 +22,7 @@ interface JpaRefreshTokenRepository extends JpaRepository<JpaRefreshToken, UUID>
   void revokeFamily(@Param("familyId") UUID familyId, @Param("revokedAt") Instant revokedAt);
 
   @Transactional
-  @Modifying
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("""
         UPDATE JpaRefreshToken t SET t.revokedAt = :revokedAt
           WHERE t.familyId = :familyId AND t.userId = :userId and t.revokedAt IS NULL
