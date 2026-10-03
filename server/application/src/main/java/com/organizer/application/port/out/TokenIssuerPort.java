@@ -11,5 +11,5 @@ public interface TokenIssuerPort {
 
   Optional<UserId> parseAccessToken(String token);
 
-  TokenPair rotateRefreshToken(String refreshTokenId);
+  TokenPair rotateRefreshToken(String presentedRefreshToken);
 }
