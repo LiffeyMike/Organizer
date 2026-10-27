@@ -1,6 +1,9 @@
 package com.organizer.adapter.security.jwt;
 
 import java.util.UUID;
+
+import javax.crypto.spec.SecretKeySpec;
+
 import java.util.Map;
 import java.util.HexFormat;
 import java.util.Date;
@@ -13,12 +16,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 import com.organizer.adapter.security.support.MutableClock;
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.domain.user.HashedPassword;
 import com.organizer.domain.user.User;
 import com.organizer.domain.user.Email;
+import com.organizer.domain.auth.StoredRefreshToken;
 import com.organizer.domain.auth.TokenPair;
 import com.organizer.adapter.security.fakes.RefreshTokenRepositoryFake;
 import com.organizer.adapter.security.fakes.UserRepositoryFake;
@@ -134,6 +140,99 @@ class JwtTokenIssuerTest {
       assertThat(issuer.parseAccessToken(foreign)).isEmpty();
     }
 
+  }
+
+  @Nested
+  class AlgorithmConfusion {
+
+    private JwtBuilder otherwiseValidToken() {
+      Instant now = clock.instant();
+      return Jwts.builder()
+          .subject(userId.id().toString())
+          .claim("email", email.value())
+          .issuer("organizer")
+          .issuedAt(Date.from(now))
+          .expiration(Date.from(now.plus(Duration.ofMinutes(15))));
+    }
+
+    @Test
+    void hs256WithAttackerSecret() {
+      byte[] secret = new byte[32];
+      new SecureRandom().nextBytes(secret);
+
+      String token = otherwiseValidToken()
+          .signWith(Keys.hmacShaKeyFor(secret), Jwts.SIG.HS256)
+          .compact();
+
+      assertThat(issuer.parseAccessToken(token)).isEmpty();
+    }
+
+    @Test
+    void hs256KeyedWithServerPublicKey() {
+      SecretKeySpec publicKeyAsHmacSecret = new SecretKeySpec(KEYS.publicKey().getEncoded(), "HmacSha256");
+
+      String token = otherwiseValidToken()
+          .signWith(publicKeyAsHmacSecret, Jwts.SIG.HS256)
+          .compact();
+
+      assertThat(issuer.parseAccessToken(token)).isEmpty();
+    }
+
+    @Test
+    void algNone() {
+      String token = otherwiseValidToken().compact();
+
+      assertThat(token).endsWith(".");
+
+      assertThat(issuer.parseAccessToken(token)).isEmpty();
+    }
+
+  }
+
+  @Nested
+  class initialIssuance {
+
+    @Test
+    void persistsExactlyOneRowWithTheRightShape() {
+      Instant now = clock.instant();
+      TokenPair pair = issuer.issueInitial(userId, email);
+
+      assertThat(tokens.all()).hasSize(1);
+      StoredRefreshToken row = tokens.all().get(0);
+
+      assertThat(row.userId()).isEqualTo(userId);
+      assertThat(row.familyId()).isNotNull();
+      assertThat(row.tokenHash()).isEqualTo(sha256Hex(pair.refreshToken()));
+      assertThat(row.createdAt()).isEqualTo(now);
+      assertThat(row.expiresAt()).isEqualTo(now.plus(Duration.ofDays(30)));
+      assertThat(row.revokedAt()).isNull();
+      assertThat(row.replacedById()).isNull();
+    }
+
+    @Test
+    void rawRefreshTokenIsNeverStored() {
+      TokenPair pair = issuer.issueInitial(userId, email);
+      assertThat(tokens.all())
+          .extracting(StoredRefreshToken::tokenHash)
+          .doesNotContain(pair.refreshToken());
+    }
+
+    @Test
+    void refreshTokenShape() {
+      TokenPair pair = issuer.issueInitial(userId, email);
+      assertThat(pair.refreshToken()).matches("^[A-Za-z0-9_-]{43}$");
+    }
+
+    @Test
+    void eachLoginStartsItsOwnFamily() {
+      TokenPair first = issuer.issueInitial(userId, email);
+      TokenPair second = issuer.issueInitial(userId, email);
+
+      assertThat(tokens.all()).hasSize(2);
+      assertThat(tokens.byHash(sha256Hex(first.refreshToken())).familyId())
+          .isNotEqualTo(tokens.byHash(sha256Hex(second.refreshToken())).familyId());
+      assertThat(first.refreshToken()).isNotEqualTo(second.refreshToken());
+    }
   }
 
   private static String sha256Hex(String raw) {
