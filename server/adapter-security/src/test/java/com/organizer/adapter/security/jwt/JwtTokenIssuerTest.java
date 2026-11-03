@@ -1,6 +1,7 @@
 package com.organizer.adapter.security.jwt;
 
 import java.util.UUID;
+import java.util.List;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -233,6 +234,107 @@ class JwtTokenIssuerTest {
           .isNotEqualTo(tokens.byHash(sha256Hex(second.refreshToken())).familyId());
       assertThat(first.refreshToken()).isNotEqualTo(second.refreshToken());
     }
+  }
+
+  @Nested
+  class RotationHappyPath {
+
+    @Test
+    void producesAFreshWorkingPair() {
+      TokenPair original = issuer.issueInitial(userId, email);
+      TokenPair rotated = issuer.rotateRefreshToken(original.refreshToken());
+
+      assertThat(rotated.refreshToken()).isNotEqualTo(original.refreshToken());
+      assertThat(issuer.parseAccessToken(rotated.accessToken())).contains(userId);
+    }
+
+    @Test
+    void storedStateAfterOneRotation() {
+      TokenPair original = issuer.issueInitial(userId, email);
+      StoredRefreshToken before = tokens.byHash(sha256Hex(original.refreshToken()));
+
+      clock.advance(Duration.ofMinutes(5));
+      Instant rotatedAt = clock.instant();
+      TokenPair rotated = issuer.rotateRefreshToken(original.refreshToken());
+
+      StoredRefreshToken oldRow = tokens.byId(before.id());
+      StoredRefreshToken newRow = tokens.byHash(sha256Hex(rotated.refreshToken()));
+
+      assertThat(tokens.all()).hasSize(2);
+      assertThat(newRow.familyId()).isEqualTo(oldRow.familyId());
+
+      assertThat(oldRow.revokedAt()).isEqualTo(rotatedAt);
+      assertThat(oldRow.replacedById()).isEqualTo(newRow.id());
+      assertThat(oldRow.tokenHash()).isEqualTo(before.tokenHash());
+      assertThat(oldRow.expiresAt()).isEqualTo(before.expiresAt());
+      assertThat(oldRow.createdAt()).isEqualTo(before.createdAt());
+
+      assertThat(newRow.revokedAt()).isNull();
+      assertThat(newRow.replacedById()).isNull();
+    }
+
+    @Test
+    void newRefreshTokenGetsAFullNewTtl() {
+      Instant start = clock.instant();
+      TokenPair original = issuer.issueInitial(userId, email);
+
+      clock.advance(Duration.ofDays(10));
+      TokenPair rotated = issuer.rotateRefreshToken(original.refreshToken());
+
+      assertThat(tokens.byHash(sha256Hex(rotated.refreshToken())).expiresAt())
+          .isEqualTo(start.plus(Duration.ofDays(10).plus(Duration.ofDays(30))));
+    }
+
+    @Test
+    void emailComesFromUserRepositoryNotOldToken() {
+      TokenPair original = issuer.issueInitial(userId, email);
+      users.save(new User(
+          userId,
+          new Email("mr.robot@fsociety.net"),
+          new HashedPassword("doesntmatter"),
+          "Elliot",
+          clock.instant()));
+
+      TokenPair rotated = issuer.rotateRefreshToken(original.refreshToken());
+
+      Claims claims = signer.verify(rotated.accessToken()).orElseThrow();
+      assertThat(claims.get("email", String.class)).isEqualTo("mr.robot@fsociety.net");
+    }
+
+    @Test
+    void chainOfRotations() {
+      TokenPair a = issuer.issueInitial(userId, email);
+      TokenPair b = issuer.rotateRefreshToken(a.refreshToken());
+      TokenPair c = issuer.rotateRefreshToken(b.refreshToken());
+      TokenPair d = issuer.rotateRefreshToken(c.refreshToken());
+
+      StoredRefreshToken rowA = tokens.byHash(sha256Hex(a.refreshToken()));
+      StoredRefreshToken rowB = tokens.byHash(sha256Hex(b.refreshToken()));
+      StoredRefreshToken rowC = tokens.byHash(sha256Hex(c.refreshToken()));
+      StoredRefreshToken rowD = tokens.byHash(sha256Hex(d.refreshToken()));
+
+      assertThat(tokens.all()).hasSize(4);
+      assertThat(tokens.inFamily(rowA.familyId())).hasSize(4);
+
+      assertThat(rowA.replacedById()).isEqualTo(rowB.id());
+      assertThat(rowB.replacedById()).isEqualTo(rowC.id());
+      assertThat(rowC.replacedById()).isEqualTo(rowD.id());
+      assertThat(rowD.replacedById()).isNull();
+
+      assertThat(List.of(rowA, rowB, rowC)).allSatisfy(row -> assertThat(row.isRevoked()).isTrue());
+      assertThat(rowD.isRevoked()).isFalse();
+    }
+
+    @Test
+    void justInsideExpiryStillRotates() {
+      TokenPair original = issuer.issueInitial(userId, email);
+      clock.advance(Duration.ofDays(30));
+
+      TokenPair rotated = issuer.rotateRefreshToken(original.refreshToken());
+
+      assertThat(issuer.parseAccessToken(rotated.accessToken())).contains(userId);
+    }
+
   }
 
   private static String sha256Hex(String raw) {
