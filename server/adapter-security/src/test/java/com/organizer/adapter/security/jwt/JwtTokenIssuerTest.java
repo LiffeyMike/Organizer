@@ -21,6 +21,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 import com.organizer.adapter.security.support.MutableClock;
+import com.organizer.coreconfig.error.InvalidCredentialsException;
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.domain.user.HashedPassword;
 import com.organizer.domain.user.User;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtTokenIssuerTest {
   private static final RsaKeyPairHolder KEYS = new RsaKeyPairHolder();
@@ -333,6 +335,52 @@ class JwtTokenIssuerTest {
       TokenPair rotated = issuer.rotateRefreshToken(original.refreshToken());
 
       assertThat(issuer.parseAccessToken(rotated.accessToken())).contains(userId);
+    }
+  }
+
+  @Nested
+  class RotationRejections {
+    @Test
+    void unknownToken() {
+      issuer.issueInitial(userId, email);
+      List<StoredRefreshToken> before = tokens.all();
+
+      assertThatThrownBy(() -> issuer.rotateRefreshToken("never-issued"))
+          .isInstanceOf(InvalidCredentialsException.class);
+
+      assertThat(tokens.all()).isEqualTo(before);
+    }
+
+    @Test
+    void accessTokenPresentedAsRefreshToken() {
+      TokenPair pair = issuer.issueInitial(userId, email);
+
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(pair.accessToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+    }
+
+    @Test
+    void expired() {
+      TokenPair pair = issuer.issueInitial(userId, email);
+      clock.advance(Duration.ofDays(30).plusSeconds(1));
+
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(pair.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+
+      assertThat(tokens.all()).hasSize(1);
+      assertThat(tokens.byHash(sha256Hex(pair.refreshToken())).revokedAt()).isNull();
+    }
+
+    @Test
+    void UserDeletedBetweenIssueAndRefresh() {
+      TokenPair pair = issuer.issueInitial(userId, email);
+      users.delete(userId);
+
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(pair.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+
+      assertThat(tokens.all()).hasSize(1);
+      assertThat(tokens.byHash(sha256Hex(pair.refreshToken())).revokedAt()).isNull();
     }
 
   }
