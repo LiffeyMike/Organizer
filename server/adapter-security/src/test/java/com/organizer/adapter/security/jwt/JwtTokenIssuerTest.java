@@ -34,6 +34,9 @@ import com.organizer.adapter.security.fakes.UserRepositoryFake;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Value;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -121,7 +124,7 @@ class JwtTokenIssuerTest {
 
     @Test
     void tamperedPayloadSwapsSubject() {
-      String parts[] = issuer.issueInitial(userId, email).accessToken().split("\\.");
+      String[] parts = issuer.issueInitial(userId, email).accessToken().split("\\.");
       String payload = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
       String victim = UUID.randomUUID().toString();
       String swapped = payload.replace(userId.id().toString(), victim);
@@ -135,12 +138,65 @@ class JwtTokenIssuerTest {
     }
 
     @Test
-    void signedByDifferentRsaKet() {
+    void signedByDifferentRsaKey() {
       JwtSigner otherSigner = new JwtSigner(new RsaKeyPairHolder(), clock);
       String foreign = otherSigner.sign(
           Map.of("sub", userId.id().toString(), "email", email.value()), Duration.ofMinutes(15));
 
       assertThat(issuer.parseAccessToken(foreign)).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "", "not-a-jwt", "a.b.c" })
+    void junkInputNeverThrows(String junk) {
+      assertThat(issuer.parseAccessToken(junk)).isEmpty();
+    }
+
+    @Test
+    void refreshTokenIsNotAnAccessToken() {
+      TokenPair pair = issuer.issueInitial(userId, email);
+      assertThat(issuer.parseAccessToken(pair.refreshToken())).isEmpty();
+    }
+
+    @Test
+    void validlySignedTokenWithNonUuidSubject() {
+      String token = signer.sign(Map.of("sub", "not-a-uuid", "email", email.value()), Duration.ofMinutes(15));
+      assertThat(issuer.parseAccessToken(token)).isEmpty();
+    }
+
+    @Test
+    void validlySignedTokenWithoutSubject() {
+      String token = signer.sign(Map.of("email", email.value()), Duration.ofMinutes(15));
+      assertThat(issuer.parseAccessToken(token)).isEmpty();
+    }
+
+    @Test
+    void wrongIssuerIsRejected() {
+      Instant now = clock.instant();
+      String token = Jwts.builder()
+          .subject(userId.id().toString())
+          .claim("email", email.value())
+          .issuer("unauthorized")
+          .issuedAt(Date.from(now))
+          .expiration((Date.from(now.plus(Duration.ofMinutes(15)))))
+          .signWith(KEYS.privateKey(), Jwts.SIG.RS256)
+          .compact();
+
+      assertThat(issuer.parseAccessToken(token)).isEmpty();
+    }
+
+    @Test
+    void missingIssuerIsRejected() {
+      Instant now = clock.instant();
+      String token = Jwts.builder()
+          .subject(userId.id().toString())
+          .claim("email", email.value())
+          .issuedAt(Date.from(now))
+          .expiration(Date.from(now.plus(Duration.ofMinutes(15))))
+          .signWith(KEYS.privateKey(), Jwts.SIG.RS256)
+          .compact();
+
+      assertThat(issuer.parseAccessToken(token)).isEmpty();
     }
 
   }
@@ -172,7 +228,7 @@ class JwtTokenIssuerTest {
 
     @Test
     void hs256KeyedWithServerPublicKey() {
-      SecretKeySpec publicKeyAsHmacSecret = new SecretKeySpec(KEYS.publicKey().getEncoded(), "HmacSha256");
+      SecretKeySpec publicKeyAsHmacSecret = new SecretKeySpec(KEYS.publicKey().getEncoded(), "HmacSHA256");
 
       String token = otherwiseValidToken()
           .signWith(publicKeyAsHmacSecret, Jwts.SIG.HS256)
@@ -372,7 +428,7 @@ class JwtTokenIssuerTest {
     }
 
     @Test
-    void UserDeletedBetweenIssueAndRefresh() {
+    void userDeletedBetweenIssueAndRefresh() {
       TokenPair pair = issuer.issueInitial(userId, email);
       users.delete(userId);
 

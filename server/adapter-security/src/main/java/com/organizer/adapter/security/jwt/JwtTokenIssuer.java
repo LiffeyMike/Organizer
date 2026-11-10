@@ -12,6 +12,7 @@ import java.util.HexFormat;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import io.jsonwebtoken.Claims;
 
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import com.organizer.application.port.out.UserRepository;
 import com.organizer.domain.auth.StoredRefreshToken;
 import com.organizer.domain.auth.TokenPair;
 import com.organizer.domain.user.Email;
+import com.organizer.domain.user.User;
 import com.organizer.coreconfig.error.InvalidCredentialsException;
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.coreconfig.id.FamilyId;
@@ -55,11 +57,12 @@ public class JwtTokenIssuer implements TokenIssuerPort {
   @Override
   public Optional<UserId> parseAccessToken(String token) {
     return jwtSigner.verify(token)
-        .flatMap(claims -> {
+        .map(Claims::getSubject)
+        .flatMap(sub -> {
           try {
-            return Optional.of(new UserId(UUID.fromString(claims.getSubject())));
+            return Optional.of(new UserId(UUID.fromString(sub)));
 
-          } catch (NullPointerException | IllegalArgumentException e) {
+          } catch (IllegalArgumentException e) {
             return Optional.empty();
           }
         });
@@ -80,7 +83,7 @@ public class JwtTokenIssuer implements TokenIssuerPort {
     }
 
     Email email = userRepository.findById(stored.userId())
-        .map(user -> user.email())
+        .map(User::email)
         .orElseThrow(() -> new InvalidCredentialsException(INVALID_REFRESH_TOKEN));
 
     Issued issued = issueAndPersist(stored.userId(), email, stored.familyId());

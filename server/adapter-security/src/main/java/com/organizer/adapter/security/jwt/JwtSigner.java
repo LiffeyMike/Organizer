@@ -20,6 +20,8 @@ public class JwtSigner {
   private final RsaKeyPairHolder keyPairHolder;
   private final Clock clock;
 
+  private static final String ISSUER = "organizer";
+
   public JwtSigner(RsaKeyPairHolder keyPairHolder, Clock clock) {
     this.keyPairHolder = keyPairHolder;
     this.clock = clock;
@@ -29,7 +31,7 @@ public class JwtSigner {
     Instant now = clock.instant();
     return Jwts.builder()
         .claims(claims)
-        .issuer("organizer")
+        .issuer(ISSUER)
         .issuedAt(Date.from(now))
         .expiration(Date.from(now.plus(ttl)))
         .id(UUID.randomUUID().toString())
@@ -40,6 +42,7 @@ public class JwtSigner {
   public Optional<Claims> verify(String token) {
     try {
       Jws<Claims> parsed = Jwts.parser()
+          .requireIssuer(ISSUER)
           .clock(() -> Date.from(clock.instant()))
           .verifyWith(keyPairHolder.publicKey())
           .build()
