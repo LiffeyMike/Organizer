@@ -382,7 +382,101 @@ class JwtTokenIssuerTest {
       assertThat(tokens.all()).hasSize(1);
       assertThat(tokens.byHash(sha256Hex(pair.refreshToken())).revokedAt()).isNull();
     }
+  }
 
+  @Nested
+  class ReuseDetection {
+
+    @Test
+    void replayingARotatedTokenKillsTheFamily() {
+      TokenPair a = issuer.issueInitial(userId, email);
+      TokenPair b = issuer.rotateRefreshToken(a.refreshToken());
+
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(a.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(b.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+
+      StoredRefreshToken rowA = tokens.byHash(sha256Hex(a.refreshToken()));
+      assertThat(tokens.inFamily(rowA.familyId()))
+          .allSatisfy(row -> assertThat(row.revokedAt()).isNotNull());
+
+    }
+
+    @Test
+    void revocationsDoNotRewriteHistory() {
+      TokenPair a = issuer.issueInitial(userId, email);
+
+      clock.advance(Duration.ofMinutes(1));
+      Instant rotatedAt = clock.instant();
+      TokenPair b = issuer.rotateRefreshToken(a.refreshToken());
+
+      clock.advance(Duration.ofMinutes(1));
+      Instant replayedAt = clock.instant();
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(a.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+
+      StoredRefreshToken rowA = tokens.byHash(sha256Hex(a.refreshToken()));
+      StoredRefreshToken rowB = tokens.byHash(sha256Hex(b.refreshToken()));
+
+      assertThat(rowA.revokedAt()).isEqualTo(rotatedAt);
+      assertThat(rowA.replacedById()).isEqualTo(rowB.id());
+      assertThat(rowB.revokedAt()).isEqualTo(replayedAt);
+
+    }
+
+    @Test
+    void replayingAMiddleToken() {
+      TokenPair a = issuer.issueInitial(userId, email);
+      TokenPair b = issuer.rotateRefreshToken(a.refreshToken());
+      TokenPair c = issuer.rotateRefreshToken(b.refreshToken());
+
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(b.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+
+      assertThat(tokens.byHash(sha256Hex(c.refreshToken())).isRevoked()).isTrue();
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(c.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+    }
+
+    @Test
+    void otherFamiliesAreUntouched() {
+      TokenPair laptop = issuer.issueInitial(userId, email);
+      TokenPair phone = issuer.issueInitial(userId, email);
+
+      issuer.rotateRefreshToken(laptop.refreshToken());
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(laptop.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+
+      TokenPair phoneRotated = issuer.rotateRefreshToken(phone.refreshToken());
+      assertThat(issuer.parseAccessToken(phoneRotated.accessToken())).contains(userId);
+    }
+
+    @Test
+    void revokedCheckRunsBeforeExpiryCheck() {
+      TokenPair a = issuer.issueInitial(userId, email);
+      clock.advance(Duration.ofDays(1));
+      TokenPair b = issuer.rotateRefreshToken(a.refreshToken());
+
+      clock.advance(Duration.ofDays(30));
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(a.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+      assertThat(tokens.byHash(sha256Hex(b.refreshToken())).isRevoked()).isTrue();
+    }
+
+    @Test
+    void repeatReplayIsStable() {
+      TokenPair a = issuer.issueInitial(userId, email);
+      issuer.rotateRefreshToken(a.refreshToken());
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(a.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+
+      List<StoredRefreshToken> afterFirstReplay = tokens.all();
+      clock.advance(Duration.ofMinutes(1));
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(a.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class);
+      assertThat(tokens.all()).isEqualTo(afterFirstReplay);
+    }
   }
 
   private static String sha256Hex(String raw) {
