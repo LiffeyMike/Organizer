@@ -479,6 +479,41 @@ class JwtTokenIssuerTest {
     }
   }
 
+  @Nested
+  class IndistinguishableFailures {
+
+    @Test
+    void everyRejectionHasTheSameMessage() {
+
+      // unknown
+      assertThatThrownBy(() -> issuer.rotateRefreshToken("never-used"))
+          .isInstanceOf(InvalidCredentialsException.class)
+          .hasMessage("Invalid refresh token");
+
+      // replayed
+      TokenPair replayed = issuer.issueInitial(userId, email);
+      issuer.rotateRefreshToken(replayed.refreshToken());
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(replayed.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class)
+          .hasMessage("Invalid refresh token");
+
+      // expired
+      TokenPair expired = issuer.issueInitial(userId, email);
+      clock.advance(Duration.ofDays(31));
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(expired.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class)
+          .hasMessage("Invalid refresh token");
+
+      // user deleted
+      TokenPair orphaned = issuer.issueInitial(userId, email);
+      users.delete(userId);
+      assertThatThrownBy(() -> issuer.rotateRefreshToken(orphaned.refreshToken()))
+          .isInstanceOf(InvalidCredentialsException.class)
+          .hasMessage("Invalid refresh token");
+    }
+
+  }
+
   private static String sha256Hex(String raw) {
     try {
       byte[] digest = MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8));
