@@ -1,22 +1,21 @@
 package com.organizer.adapter.graphql.pagination;
 
+import com.organizer.adapter.graphql.error.BadUserInputException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 
-import com.organizer.adapter.graphql.error.BadUserInputException;
-
 public final class CursorCodec {
-  private CursorCodec() {
-  }
+  private CursorCodec() {}
 
-  public record CursorPosition(Instant sortKey, UUID id) {
-  }
+  public record CursorPosition(Instant sortKey, UUID id) {}
 
   public static String encode(Instant sortKey, UUID id) {
     String raw = sortKey.toString() + ":" + id;
-    return Base64.getUrlEncoder().withoutPadding().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
+    return Base64.getUrlEncoder()
+        .withoutPadding()
+        .encodeToString(raw.getBytes(StandardCharsets.UTF_8));
   }
 
   public static CursorPosition decode(String cursor) {

@@ -1,5 +1,17 @@
 package com.organizer.adapter.security.jwt;
 
+import com.organizer.application.port.out.RefreshTokenRepository;
+import com.organizer.application.port.out.TokenIssuerPort;
+import com.organizer.application.port.out.UserRepository;
+import com.organizer.coreconfig.error.InvalidCredentialsException;
+import com.organizer.coreconfig.id.FamilyId;
+import com.organizer.coreconfig.id.RefreshTokenId;
+import com.organizer.coreconfig.id.UserId;
+import com.organizer.domain.auth.StoredRefreshToken;
+import com.organizer.domain.auth.TokenPair;
+import com.organizer.domain.user.Email;
+import com.organizer.domain.user.User;
+import io.jsonwebtoken.Claims;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,21 +24,7 @@ import java.util.HexFormat;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import io.jsonwebtoken.Claims;
-
 import org.springframework.stereotype.Component;
-
-import com.organizer.application.port.out.RefreshTokenRepository;
-import com.organizer.application.port.out.TokenIssuerPort;
-import com.organizer.application.port.out.UserRepository;
-import com.organizer.domain.auth.StoredRefreshToken;
-import com.organizer.domain.auth.TokenPair;
-import com.organizer.domain.user.Email;
-import com.organizer.domain.user.User;
-import com.organizer.coreconfig.error.InvalidCredentialsException;
-import com.organizer.coreconfig.id.UserId;
-import com.organizer.coreconfig.id.FamilyId;
-import com.organizer.coreconfig.id.RefreshTokenId;
 
 @Component
 public class JwtTokenIssuer implements TokenIssuerPort {
@@ -41,8 +39,11 @@ public class JwtTokenIssuer implements TokenIssuerPort {
   private final Clock clock;
   private final SecureRandom secureRandom = new SecureRandom();
 
-  public JwtTokenIssuer(JwtSigner jwtSigner, RefreshTokenRepository refreshTokenRepository,
-      UserRepository userRepository, Clock clock) {
+  public JwtTokenIssuer(
+      JwtSigner jwtSigner,
+      RefreshTokenRepository refreshTokenRepository,
+      UserRepository userRepository,
+      Clock clock) {
     this.jwtSigner = jwtSigner;
     this.refreshTokenRepository = refreshTokenRepository;
     this.userRepository = userRepository;
@@ -56,7 +57,8 @@ public class JwtTokenIssuer implements TokenIssuerPort {
 
   @Override
   public Optional<UserId> parseAccessToken(String token) {
-    return jwtSigner.verify(token)
+    return jwtSigner
+        .verify(token)
         .map(Claims::getSubject)
         .flatMap(sub -> {
           try {
@@ -70,8 +72,10 @@ public class JwtTokenIssuer implements TokenIssuerPort {
 
   @Override
   public TokenPair rotateRefreshToken(String presentedRefreshToken) {
-    StoredRefreshToken stored = refreshTokenRepository.findTokenByHash(hash(presentedRefreshToken))
-        .orElseThrow(() -> new InvalidCredentialsException(INVALID_REFRESH_TOKEN));
+    StoredRefreshToken stored =
+        refreshTokenRepository
+            .findTokenByHash(hash(presentedRefreshToken))
+            .orElseThrow(() -> new InvalidCredentialsException(INVALID_REFRESH_TOKEN));
 
     if (stored.isRevoked()) {
       refreshTokenRepository.revokeFamily(stored.familyId(), clock.instant());
@@ -82,9 +86,11 @@ public class JwtTokenIssuer implements TokenIssuerPort {
       throw new InvalidCredentialsException(INVALID_REFRESH_TOKEN);
     }
 
-    Email email = userRepository.findById(stored.userId())
-        .map(User::email)
-        .orElseThrow(() -> new InvalidCredentialsException(INVALID_REFRESH_TOKEN));
+    Email email =
+        userRepository
+            .findById(stored.userId())
+            .map(User::email)
+            .orElseThrow(() -> new InvalidCredentialsException(INVALID_REFRESH_TOKEN));
 
     Issued issued = issueAndPersist(stored.userId(), email, stored.familyId());
 
@@ -93,32 +99,33 @@ public class JwtTokenIssuer implements TokenIssuerPort {
     return issued.tokenPair();
   }
 
-  private record Issued(TokenPair tokenPair, RefreshTokenId refreshTokenId) {
-  }
+  private record Issued(TokenPair tokenPair, RefreshTokenId refreshTokenId) {}
 
   private Issued issueAndPersist(UserId userId, Email email, FamilyId familyId) {
     RefreshTokenId newId = new RefreshTokenId(UUID.randomUUID());
     String rawRefreshToken = generateOpaqueToken();
     Instant now = clock.instant();
 
-    refreshTokenRepository.save(new StoredRefreshToken(
-        newId,
-        userId,
-        familyId,
-        hash(rawRefreshToken),
-        now.plus(REFRESH_TOKEN_TTL),
-        null,
-        null,
-        now));
+    refreshTokenRepository.save(
+        new StoredRefreshToken(
+            newId,
+            userId,
+            familyId,
+            hash(rawRefreshToken),
+            now.plus(REFRESH_TOKEN_TTL),
+            null,
+            null,
+            now));
 
-    String accessToken = jwtSigner.sign(
-        Map.of("sub", userId.id().toString(), "email", email.value()), ACCESS_TOKEN_TTL);
+    String accessToken =
+        jwtSigner.sign(
+            Map.of("sub", userId.id().toString(), "email", email.value()), ACCESS_TOKEN_TTL);
 
     return new Issued(new TokenPair(accessToken, rawRefreshToken), newId);
   }
 
-  private StoredRefreshToken withRevocation(StoredRefreshToken original, Instant revokedAt,
-      RefreshTokenId replacedById) {
+  private StoredRefreshToken withRevocation(
+      StoredRefreshToken original, Instant revokedAt, RefreshTokenId replacedById) {
     return new StoredRefreshToken(
         original.id(),
         original.userId(),
@@ -128,7 +135,6 @@ public class JwtTokenIssuer implements TokenIssuerPort {
         revokedAt,
         replacedById,
         original.createdAt());
-
   }
 
   private String generateOpaqueToken() {

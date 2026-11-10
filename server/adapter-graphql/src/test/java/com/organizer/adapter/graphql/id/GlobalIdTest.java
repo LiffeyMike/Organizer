@@ -1,13 +1,11 @@
 package com.organizer.adapter.graphql.id;
 
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-
-import com.organizer.adapter.graphql.error.BadUserInputException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.organizer.adapter.graphql.error.BadUserInputException;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
 
 class GlobalIdTest {
 

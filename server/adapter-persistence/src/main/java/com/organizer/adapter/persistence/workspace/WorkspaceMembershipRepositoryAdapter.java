@@ -1,13 +1,11 @@
 package com.organizer.adapter.persistence.workspace;
 
-import java.util.Optional;
-
-import org.springframework.stereotype.Component;
-
 import com.organizer.application.port.out.WorkspaceMembershipRepository;
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.coreconfig.id.WorkspaceId;
 import com.organizer.domain.workspace.WorkspaceMembership;
+import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 @Component
 public class WorkspaceMembershipRepositoryAdapter implements WorkspaceMembershipRepository {
@@ -15,7 +13,8 @@ public class WorkspaceMembershipRepositoryAdapter implements WorkspaceMembership
   private final JpaWorkspaceMembershipRepository jpaRepository;
   private final WorkspaceMembershipMapper mapper;
 
-  public WorkspaceMembershipRepositoryAdapter(JpaWorkspaceMembershipRepository workspaceMembershipRepository,
+  public WorkspaceMembershipRepositoryAdapter(
+      JpaWorkspaceMembershipRepository workspaceMembershipRepository,
       WorkspaceMembershipMapper mapper) {
     this.jpaRepository = workspaceMembershipRepository;
     this.mapper = mapper;
@@ -27,7 +26,10 @@ public class WorkspaceMembershipRepositoryAdapter implements WorkspaceMembership
   }
 
   @Override
-  public Optional<WorkspaceMembership> findByWorkspaceAndUser(WorkspaceId workspaceId, UserId userId) {
-    return jpaRepository.findByWorkspaceIdAndUserId(workspaceId.id(), userId.id()).map(mapper::toDomain);
+  public Optional<WorkspaceMembership> findByWorkspaceAndUser(
+      WorkspaceId workspaceId, UserId userId) {
+    return jpaRepository
+        .findByWorkspaceIdAndUserId(workspaceId.id(), userId.id())
+        .map(mapper::toDomain);
   }
 }

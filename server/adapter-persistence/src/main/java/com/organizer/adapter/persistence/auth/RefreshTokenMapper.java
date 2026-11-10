@@ -1,13 +1,11 @@
 package com.organizer.adapter.persistence.auth;
 
-import org.springframework.stereotype.Component;
-
-import java.time.Instant;
-
+import com.organizer.coreconfig.id.FamilyId;
 import com.organizer.coreconfig.id.RefreshTokenId;
 import com.organizer.coreconfig.id.UserId;
-import com.organizer.coreconfig.id.FamilyId;
 import com.organizer.domain.auth.StoredRefreshToken;
+import java.time.Instant;
+import org.springframework.stereotype.Component;
 
 @Component
 public class RefreshTokenMapper {
@@ -33,12 +31,13 @@ public class RefreshTokenMapper {
     String tokenHash = entity.getTokenHash();
     Instant expiresAt = entity.getExpiresAt();
     Instant revokedAt = entity.getRevokedAt();
-    RefreshTokenId replacedById = entity.getReplacedById() == null ? null
-        : new RefreshTokenId(entity.getReplacedById());
+    RefreshTokenId replacedById =
+        entity.getReplacedById() == null ? null : new RefreshTokenId(entity.getReplacedById());
     Instant createdAt = entity.getCreatedAt();
 
-    StoredRefreshToken token = new StoredRefreshToken(
-        id, userId, familyId, tokenHash, expiresAt, revokedAt, replacedById, createdAt);
+    StoredRefreshToken token =
+        new StoredRefreshToken(
+            id, userId, familyId, tokenHash, expiresAt, revokedAt, replacedById, createdAt);
 
     return token;
   }

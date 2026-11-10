@@ -1,16 +1,13 @@
 package com.organizer.adapter.graphql.error;
 
-import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter;
-import org.springframework.graphql.execution.ErrorType;
-import org.springframework.stereotype.Component;
-
 import com.organizer.coreconfig.error.UnauthenticatedException;
-
 import graphql.GraphQLError;
 import graphql.GraphqlErrorBuilder;
 import graphql.schema.DataFetchingEnvironment;
-
 import java.util.Map;
+import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter;
+import org.springframework.graphql.execution.ErrorType;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GraphQlExceptionResolver extends DataFetcherExceptionResolverAdapter {
@@ -38,6 +35,5 @@ public class GraphQlExceptionResolver extends DataFetcherExceptionResolverAdapte
         .message("An Unexpected error occurred.")
         .extensions(Map.of("code", TopLevelErrorCode.INTERNAL.name()))
         .build();
-
   }
 }

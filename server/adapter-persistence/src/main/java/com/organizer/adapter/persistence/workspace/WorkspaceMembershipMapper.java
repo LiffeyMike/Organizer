@@ -1,12 +1,11 @@
 package com.organizer.adapter.persistence.workspace;
 
-import org.springframework.stereotype.Component;
-
 import com.organizer.coreconfig.id.MembershipId;
-import com.organizer.coreconfig.id.WorkspaceId;
 import com.organizer.coreconfig.id.UserId;
+import com.organizer.coreconfig.id.WorkspaceId;
 import com.organizer.domain.workspace.Role;
-import com.organizer.domain.workspace.WorkspaceMembership;;
+import com.organizer.domain.workspace.WorkspaceMembership;
+import org.springframework.stereotype.Component;
 
 @Component
 class WorkspaceMembershipMapper {

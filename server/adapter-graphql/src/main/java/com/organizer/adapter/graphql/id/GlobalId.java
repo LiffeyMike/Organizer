@@ -1,14 +1,12 @@
 package com.organizer.adapter.graphql.id;
 
 import com.organizer.adapter.graphql.error.BadUserInputException;
-
 import java.util.UUID;
 
 public final class GlobalId {
   private static String PREFIX = "gid://organizer/";
 
-  private GlobalId() {
-  }
+  private GlobalId() {}
 
   public static String encode(String typename, UUID id) {
     return PREFIX + typename + "/" + id;

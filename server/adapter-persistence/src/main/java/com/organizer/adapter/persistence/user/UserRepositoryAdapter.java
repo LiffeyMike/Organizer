@@ -1,13 +1,11 @@
 package com.organizer.adapter.persistence.user;
 
-import java.util.Optional;
-
-import org.springframework.stereotype.Component;
-
 import com.organizer.application.port.out.UserRepository;
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.domain.user.Email;
 import com.organizer.domain.user.User;
+import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 @Component
 public class UserRepositoryAdapter implements UserRepository {

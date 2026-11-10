@@ -1,14 +1,12 @@
 package com.organizer.adapter.persistence.auth;
 
-import java.time.Instant;
-import java.util.Optional;
-
-import org.springframework.stereotype.Component;
-
+import com.organizer.application.port.out.RefreshTokenRepository;
 import com.organizer.coreconfig.id.FamilyId;
 import com.organizer.coreconfig.id.UserId;
-import com.organizer.application.port.out.RefreshTokenRepository;
 import com.organizer.domain.auth.StoredRefreshToken;
+import java.time.Instant;
+import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 @Component
 public class RefreshTokenRepositoryAdapter implements RefreshTokenRepository {
@@ -23,8 +21,7 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepository {
 
   @Override
   public StoredRefreshToken save(StoredRefreshToken token) {
-    return mapper.toDomain(
-        repo.save(mapper.toEntity(token)));
+    return mapper.toDomain(repo.save(mapper.toEntity(token)));
   }
 
   @Override
@@ -41,5 +38,4 @@ public class RefreshTokenRepositoryAdapter implements RefreshTokenRepository {
   public void revokeFamilyForUser(UserId userId, FamilyId familyId, Instant revokedAt) {
     repo.revokeFamilyForUser(userId.id(), familyId.id(), revokedAt);
   }
-
 }

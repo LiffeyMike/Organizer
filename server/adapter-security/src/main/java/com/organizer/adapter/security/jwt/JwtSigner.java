@@ -1,19 +1,17 @@
 package com.organizer.adapter.security.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.Clock;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.springframework.stereotype.Component;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.JwtException;
 
 @Component
 public class JwtSigner {
@@ -41,12 +39,13 @@ public class JwtSigner {
 
   public Optional<Claims> verify(String token) {
     try {
-      Jws<Claims> parsed = Jwts.parser()
-          .requireIssuer(ISSUER)
-          .clock(() -> Date.from(clock.instant()))
-          .verifyWith(keyPairHolder.publicKey())
-          .build()
-          .parseSignedClaims(token);
+      Jws<Claims> parsed =
+          Jwts.parser()
+              .requireIssuer(ISSUER)
+              .clock(() -> Date.from(clock.instant()))
+              .verifyWith(keyPairHolder.publicKey())
+              .build()
+              .parseSignedClaims(token);
       return Optional.of(parsed.getPayload());
     } catch (JwtException | IllegalArgumentException e) {
       return Optional.empty();

@@ -1,11 +1,10 @@
 package com.organizer.adapter.persistence.user;
 
-import org.springframework.stereotype.Component;
-
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.domain.user.Email;
 import com.organizer.domain.user.HashedPassword;
 import com.organizer.domain.user.User;
+import org.springframework.stereotype.Component;
 
 @Component
 class UserMapper {

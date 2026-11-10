@@ -1,18 +1,16 @@
 package com.organizer.domain.user;
 
-import org.junit.jupiter.api.Test;
-
-import com.organizer.coreconfig.error.ValidationException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.organizer.coreconfig.error.ValidationException;
+import org.junit.jupiter.api.Test;
 
 class EmailTest {
 
   @Test
   void rejectsMalformedAddress() {
-    assertThatThrownBy(() -> new Email("not.an.email"))
-        .isInstanceOf(ValidationException.class);
+    assertThatThrownBy(() -> new Email("not.an.email")).isInstanceOf(ValidationException.class);
   }
 
   @Test

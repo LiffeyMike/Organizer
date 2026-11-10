@@ -1,8 +1,7 @@
 package com.organizer.domain.user;
 
-import java.util.regex.Pattern;
-
 import com.organizer.coreconfig.error.ValidationException;
+import java.util.regex.Pattern;
 
 public record Email(String value) {
 
@@ -15,5 +14,4 @@ public record Email(String value) {
 
     value = value.trim().toLowerCase();
   }
-
 }

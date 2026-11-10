@@ -1,45 +1,40 @@
 package com.organizer.adapter.security.jwt;
 
-import java.util.UUID;
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import javax.crypto.spec.SecretKeySpec;
-
-import java.util.Map;
-import java.util.HexFormat;
-import java.util.Date;
-import java.util.Base64;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import com.organizer.adapter.security.fakes.RefreshTokenRepositoryFake;
+import com.organizer.adapter.security.fakes.UserRepositoryFake;
+import com.organizer.adapter.security.support.MutableClock;
+import com.organizer.coreconfig.error.InvalidCredentialsException;
+import com.organizer.coreconfig.id.UserId;
+import com.organizer.domain.auth.StoredRefreshToken;
+import com.organizer.domain.auth.TokenPair;
+import com.organizer.domain.user.Email;
+import com.organizer.domain.user.HashedPassword;
+import com.organizer.domain.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-
-import com.organizer.adapter.security.support.MutableClock;
-import com.organizer.coreconfig.error.InvalidCredentialsException;
-import com.organizer.coreconfig.id.UserId;
-import com.organizer.domain.user.HashedPassword;
-import com.organizer.domain.user.User;
-import com.organizer.domain.user.Email;
-import com.organizer.domain.auth.StoredRefreshToken;
-import com.organizer.domain.auth.TokenPair;
-import com.organizer.adapter.security.fakes.RefreshTokenRepositoryFake;
-import com.organizer.adapter.security.fakes.UserRepositoryFake;
-
-import org.junit.jupiter.api.Test;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.Date;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Value;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtTokenIssuerTest {
   private static final RsaKeyPairHolder KEYS = new RsaKeyPairHolder();
@@ -61,12 +56,8 @@ class JwtTokenIssuerTest {
     users = new UserRepositoryFake();
     issuer = new JwtTokenIssuer(signer, tokens, users, clock);
 
-    User user = new User(
-        userId,
-        email,
-        new HashedPassword("irrelevant"),
-        "Elliot",
-        clock.instant());
+    User user =
+        new User(userId, email, new HashedPassword("irrelevant"), "Elliot", clock.instant());
 
     users.save(user);
   }
@@ -130,9 +121,14 @@ class JwtTokenIssuerTest {
       String swapped = payload.replace(userId.id().toString(), victim);
       assertThat(swapped).contains(victim);
 
-      String tampered = parts[0] + "."
-          + Base64.getUrlEncoder().withoutPadding().encodeToString(swapped.getBytes(StandardCharsets.UTF_8))
-          + "." + parts[2];
+      String tampered =
+          parts[0]
+              + "."
+              + Base64.getUrlEncoder()
+                  .withoutPadding()
+                  .encodeToString(swapped.getBytes(StandardCharsets.UTF_8))
+              + "."
+              + parts[2];
 
       assertThat(issuer.parseAccessToken(tampered)).isEmpty();
     }
@@ -140,14 +136,16 @@ class JwtTokenIssuerTest {
     @Test
     void signedByDifferentRsaKey() {
       JwtSigner otherSigner = new JwtSigner(new RsaKeyPairHolder(), clock);
-      String foreign = otherSigner.sign(
-          Map.of("sub", userId.id().toString(), "email", email.value()), Duration.ofMinutes(15));
+      String foreign =
+          otherSigner.sign(
+              Map.of("sub", userId.id().toString(), "email", email.value()),
+              Duration.ofMinutes(15));
 
       assertThat(issuer.parseAccessToken(foreign)).isEmpty();
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "", "not-a-jwt", "a.b.c" })
+    @ValueSource(strings = {"", "not-a-jwt", "a.b.c"})
     void junkInputNeverThrows(String junk) {
       assertThat(issuer.parseAccessToken(junk)).isEmpty();
     }
@@ -160,7 +158,8 @@ class JwtTokenIssuerTest {
 
     @Test
     void validlySignedTokenWithNonUuidSubject() {
-      String token = signer.sign(Map.of("sub", "not-a-uuid", "email", email.value()), Duration.ofMinutes(15));
+      String token =
+          signer.sign(Map.of("sub", "not-a-uuid", "email", email.value()), Duration.ofMinutes(15));
       assertThat(issuer.parseAccessToken(token)).isEmpty();
     }
 
@@ -173,14 +172,15 @@ class JwtTokenIssuerTest {
     @Test
     void wrongIssuerIsRejected() {
       Instant now = clock.instant();
-      String token = Jwts.builder()
-          .subject(userId.id().toString())
-          .claim("email", email.value())
-          .issuer("unauthorized")
-          .issuedAt(Date.from(now))
-          .expiration((Date.from(now.plus(Duration.ofMinutes(15)))))
-          .signWith(KEYS.privateKey(), Jwts.SIG.RS256)
-          .compact();
+      String token =
+          Jwts.builder()
+              .subject(userId.id().toString())
+              .claim("email", email.value())
+              .issuer("unauthorized")
+              .issuedAt(Date.from(now))
+              .expiration((Date.from(now.plus(Duration.ofMinutes(15)))))
+              .signWith(KEYS.privateKey(), Jwts.SIG.RS256)
+              .compact();
 
       assertThat(issuer.parseAccessToken(token)).isEmpty();
     }
@@ -188,17 +188,17 @@ class JwtTokenIssuerTest {
     @Test
     void missingIssuerIsRejected() {
       Instant now = clock.instant();
-      String token = Jwts.builder()
-          .subject(userId.id().toString())
-          .claim("email", email.value())
-          .issuedAt(Date.from(now))
-          .expiration(Date.from(now.plus(Duration.ofMinutes(15))))
-          .signWith(KEYS.privateKey(), Jwts.SIG.RS256)
-          .compact();
+      String token =
+          Jwts.builder()
+              .subject(userId.id().toString())
+              .claim("email", email.value())
+              .issuedAt(Date.from(now))
+              .expiration(Date.from(now.plus(Duration.ofMinutes(15))))
+              .signWith(KEYS.privateKey(), Jwts.SIG.RS256)
+              .compact();
 
       assertThat(issuer.parseAccessToken(token)).isEmpty();
     }
-
   }
 
   @Nested
@@ -219,20 +219,19 @@ class JwtTokenIssuerTest {
       byte[] secret = new byte[32];
       new SecureRandom().nextBytes(secret);
 
-      String token = otherwiseValidToken()
-          .signWith(Keys.hmacShaKeyFor(secret), Jwts.SIG.HS256)
-          .compact();
+      String token =
+          otherwiseValidToken().signWith(Keys.hmacShaKeyFor(secret), Jwts.SIG.HS256).compact();
 
       assertThat(issuer.parseAccessToken(token)).isEmpty();
     }
 
     @Test
     void hs256KeyedWithServerPublicKey() {
-      SecretKeySpec publicKeyAsHmacSecret = new SecretKeySpec(KEYS.publicKey().getEncoded(), "HmacSHA256");
+      SecretKeySpec publicKeyAsHmacSecret =
+          new SecretKeySpec(KEYS.publicKey().getEncoded(), "HmacSHA256");
 
-      String token = otherwiseValidToken()
-          .signWith(publicKeyAsHmacSecret, Jwts.SIG.HS256)
-          .compact();
+      String token =
+          otherwiseValidToken().signWith(publicKeyAsHmacSecret, Jwts.SIG.HS256).compact();
 
       assertThat(issuer.parseAccessToken(token)).isEmpty();
     }
@@ -245,7 +244,6 @@ class JwtTokenIssuerTest {
 
       assertThat(issuer.parseAccessToken(token)).isEmpty();
     }
-
   }
 
   @Nested
@@ -346,12 +344,13 @@ class JwtTokenIssuerTest {
     @Test
     void emailComesFromUserRepositoryNotOldToken() {
       TokenPair original = issuer.issueInitial(userId, email);
-      users.save(new User(
-          userId,
-          new Email("mr.robot@fsociety.net"),
-          new HashedPassword("doesntmatter"),
-          "Elliot",
-          clock.instant()));
+      users.save(
+          new User(
+              userId,
+              new Email("mr.robot@fsociety.net"),
+              new HashedPassword("doesntmatter"),
+              "Elliot",
+              clock.instant()));
 
       TokenPair rotated = issuer.rotateRefreshToken(original.refreshToken());
 
@@ -456,7 +455,6 @@ class JwtTokenIssuerTest {
       StoredRefreshToken rowA = tokens.byHash(sha256Hex(a.refreshToken()));
       assertThat(tokens.inFamily(rowA.familyId()))
           .allSatisfy(row -> assertThat(row.revokedAt()).isNotNull());
-
     }
 
     @Test
@@ -478,7 +476,6 @@ class JwtTokenIssuerTest {
       assertThat(rowA.revokedAt()).isEqualTo(rotatedAt);
       assertThat(rowA.replacedById()).isEqualTo(rowB.id());
       assertThat(rowB.revokedAt()).isEqualTo(replayedAt);
-
     }
 
     @Test
@@ -567,16 +564,15 @@ class JwtTokenIssuerTest {
           .isInstanceOf(InvalidCredentialsException.class)
           .hasMessage("Invalid refresh token");
     }
-
   }
 
   private static String sha256Hex(String raw) {
     try {
-      byte[] digest = MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8));
+      byte[] digest =
+          MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8));
       return HexFormat.of().formatHex(digest);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
     }
   }
-
 }

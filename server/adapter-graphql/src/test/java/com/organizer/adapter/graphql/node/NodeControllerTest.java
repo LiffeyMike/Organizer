@@ -1,14 +1,12 @@
 package com.organizer.adapter.graphql.node;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.organizer.adapter.graphql.error.BadUserInputException;
 import com.organizer.adapter.graphql.id.GlobalId;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
 
 class NodeControllerTest {
 
@@ -17,7 +15,6 @@ class NodeControllerTest {
     NodeController controller = new NodeController(List.of());
     String globalId = GlobalId.encode("Widget", UUID.randomUUID());
 
-    assertThatThrownBy(() -> controller.node(globalId))
-        .isInstanceOf(BadUserInputException.class);
+    assertThatThrownBy(() -> controller.node(globalId)).isInstanceOf(BadUserInputException.class);
   }
 }

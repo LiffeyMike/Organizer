@@ -1,27 +1,6 @@
 package com.organizer.adapter.security.config;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import javax.crypto.spec.SecretKeySpec;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import org.springframework.mock.web.MockFilterChain;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.organizer.adapter.security.AuthenticatedUser;
 import com.organizer.adapter.security.jwt.JwtSigner;
@@ -29,10 +8,26 @@ import com.organizer.adapter.security.jwt.RsaKeyPairHolder;
 import com.organizer.adapter.security.support.MutableClock;
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.domain.user.Email;
-
 import io.jsonwebtoken.Jwts;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Stream;
+import javax.crypto.spec.SecretKeySpec;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 class JwtAuthenticationFilterTest {
 
@@ -91,12 +86,13 @@ class JwtAuthenticationFilterTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {
-      "Basic fkdajlsfjl",
-      "Bearer ",
-      "Bearer useless",
-      "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
-  })
+  @ValueSource(
+      strings = {
+        "Basic fkdajlsfjl",
+        "Bearer ",
+        "Bearer useless",
+        "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
+      })
   void unusableHeaderLeavesContextEmpty(String header) throws Exception {
     request.addHeader("Authorization", header);
 
@@ -121,14 +117,16 @@ class JwtAuthenticationFilterTest {
   @Test
   void hs256TokenKeyedWithServerPublicKeyLeavesContextEmpty() throws Exception {
     Instant now = clock.instant();
-    String token = Jwts.builder()
-        .subject(userId.id().toString())
-        .claim("email", email.value())
-        .issuer("organizer")
-        .issuedAt(Date.from(now))
-        .expiration(Date.from(now.plus(TTL)))
-        .signWith(new SecretKeySpec(KEYS.publicKey().getEncoded(), "HmacSHA256"), Jwts.SIG.HS256)
-        .compact();
+    String token =
+        Jwts.builder()
+            .subject(userId.id().toString())
+            .claim("email", email.value())
+            .issuer("organizer")
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(now.plus(TTL)))
+            .signWith(
+                new SecretKeySpec(KEYS.publicKey().getEncoded(), "HmacSHA256"), Jwts.SIG.HS256)
+            .compact();
 
     request.addHeader("Authorization", "Bearer " + token);
 
@@ -139,7 +137,7 @@ class JwtAuthenticationFilterTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = { "bearer ", "BEARER " })
+  @ValueSource(strings = {"bearer ", "BEARER "})
   void schemeIsCaseInsensitive(String scheme) throws Exception {
     request.addHeader("Authorization", scheme + validToken());
 
@@ -182,5 +180,4 @@ class JwtAuthenticationFilterTest {
   private void assertChainInvoked() {
     assertThat(chain.getRequest()).isSameAs(request);
   }
-
 }

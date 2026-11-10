@@ -1,13 +1,6 @@
 package com.organizer.adapter.persistence.workspace;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.organizer.adapter.persistence.AbstractIntegrationTest;
 import com.organizer.adapter.persistence.user.UserRepositoryAdapter;
@@ -16,45 +9,49 @@ import com.organizer.coreconfig.id.UserId;
 import com.organizer.coreconfig.id.WorkspaceId;
 import com.organizer.coreconfig.page.Page;
 import com.organizer.coreconfig.page.PageQuery;
-import com.organizer.domain.user.User;
 import com.organizer.domain.user.Email;
 import com.organizer.domain.user.HashedPassword;
-import com.organizer.domain.workspace.Workspace;
+import com.organizer.domain.user.User;
 import com.organizer.domain.workspace.Role;
+import com.organizer.domain.workspace.Workspace;
 import com.organizer.domain.workspace.WorkspaceMembership;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class WorkspaceRepositoryAdapterTest extends AbstractIntegrationTest {
 
-  @Autowired
-  UserRepositoryAdapter users;
+  @Autowired UserRepositoryAdapter users;
 
-  @Autowired
-  WorkspaceRepositoryAdapter workspaces;
+  @Autowired WorkspaceRepositoryAdapter workspaces;
 
-  @Autowired
-  WorkspaceMembershipRepositoryAdapter memberships;
+  @Autowired WorkspaceMembershipRepositoryAdapter memberships;
 
   private User owner;
 
   @BeforeEach
   void createOwner() {
     Clock fixedClock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
-    User owner = User.register(
-        new UserId(UUID.randomUUID()),
-        new Email("admin@computer.net"),
-        new HashedPassword("h4sh3ed"),
-        "Admin",
-        fixedClock);
+    User owner =
+        User.register(
+            new UserId(UUID.randomUUID()),
+            new Email("admin@computer.net"),
+            new HashedPassword("h4sh3ed"),
+            "Admin",
+            fixedClock);
     this.owner = users.save(owner);
   }
 
   @Test
   void savesAndFindsById() {
     Clock fixedClock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
-    Workspace workspace = Workspace.personalFor(
-        new WorkspaceId(UUID.randomUUID()), owner.id(), owner.displayName(), fixedClock);
+    Workspace workspace =
+        Workspace.personalFor(
+            new WorkspaceId(UUID.randomUUID()), owner.id(), owner.displayName(), fixedClock);
     workspaces.save(workspace);
 
     assertThat(workspaces.findById(workspace.id())).contains(workspace);
@@ -67,11 +64,12 @@ public class WorkspaceRepositoryAdapterTest extends AbstractIntegrationTest {
 
     // This workspace is saved, but no membership is added for the owner.
     // It should not be returned for the User's workspaces
-    workspaces.save(Workspace.personalFor(
-        new WorkspaceId(UUID.randomUUID()),
-        owner.id(),
-        owner.displayName(),
-        Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC)));
+    workspaces.save(
+        Workspace.personalFor(
+            new WorkspaceId(UUID.randomUUID()),
+            owner.id(),
+            owner.displayName(),
+            Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC)));
 
     Page<Workspace> page = workspaces.findPageForUser(owner.id(), PageQuery.firstPage(10));
 
@@ -94,15 +92,14 @@ public class WorkspaceRepositoryAdapterTest extends AbstractIntegrationTest {
 
   private Workspace saveWorkspaceWithMembership(Instant createdAt) {
     Clock fixedClock = Clock.fixed(createdAt, ZoneOffset.UTC);
-    Workspace workspace = Workspace.personalFor(
-        new WorkspaceId(UUID.randomUUID()),
-        owner.id(),
-        owner.displayName(),
-        fixedClock);
+    Workspace workspace =
+        Workspace.personalFor(
+            new WorkspaceId(UUID.randomUUID()), owner.id(), owner.displayName(), fixedClock);
 
     Workspace saved = workspaces.save(workspace);
     memberships.save(
-        new WorkspaceMembership(new MembershipId(UUID.randomUUID()),
+        new WorkspaceMembership(
+            new MembershipId(UUID.randomUUID()),
             saved.id(),
             owner.id(),
             Role.OWNER,
@@ -110,5 +107,4 @@ public class WorkspaceRepositoryAdapterTest extends AbstractIntegrationTest {
 
     return saved;
   }
-
 }

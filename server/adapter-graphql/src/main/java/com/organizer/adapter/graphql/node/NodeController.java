@@ -1,16 +1,14 @@
 package com.organizer.adapter.graphql.node;
 
+import com.organizer.adapter.graphql.error.BadUserInputException;
+import com.organizer.adapter.graphql.id.GlobalId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
-
-import com.organizer.adapter.graphql.error.BadUserInputException;
-import com.organizer.adapter.graphql.id.GlobalId;
 
 @Controller
 public class NodeController {
@@ -18,8 +16,8 @@ public class NodeController {
   private final Map<String, NodeResolver> resolversByType;
 
   public NodeController(List<NodeResolver> resolvers) {
-    this.resolversByType = resolvers.stream()
-        .collect(Collectors.toMap(NodeResolver::typeName, r -> r));
+    this.resolversByType =
+        resolvers.stream().collect(Collectors.toMap(NodeResolver::typeName, r -> r));
   }
 
   @QueryMapping
@@ -46,5 +44,4 @@ public class NodeController {
     String withoutPrefix = globalId.substring("gid://organizer/".length());
     return withoutPrefix.substring(0, withoutPrefix.indexOf("/"));
   }
-
 }

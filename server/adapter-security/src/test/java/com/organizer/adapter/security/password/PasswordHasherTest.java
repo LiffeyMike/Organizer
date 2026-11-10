@@ -1,11 +1,10 @@
 package com.organizer.adapter.security.password;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.organizer.domain.user.HashedPassword;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;;
+import org.junit.jupiter.api.Test;
 
 class PasswordHasherTest {
   private static String RAW = "horseplay";
@@ -16,9 +15,7 @@ class PasswordHasherTest {
   void hasIsBcryptAtCost12() {
     HashedPassword hashed = hasher.hash(RAW);
 
-    assertThat(hashed.value())
-        .matches("^\\$2[aby]?\\$12\\$.{53}$")
-        .isNotEqualTo(RAW);
+    assertThat(hashed.value()).matches("^\\$2[aby]?\\$12\\$.{53}$").isNotEqualTo(RAW);
   }
 
   @Test
@@ -55,7 +52,6 @@ class PasswordHasherTest {
   void passwordsOver72BytesAreRejected() {
     String tooLong = "a".repeat(73);
 
-    assertThatThrownBy(() -> hasher.hash(tooLong))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> hasher.hash(tooLong)).isInstanceOf(IllegalArgumentException.class);
   }
 }

@@ -1,12 +1,12 @@
 package com.organizer.application.workspace;
 
-import org.springframework.stereotype.Service;
-
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.coreconfig.id.WorkspaceId;
+import org.springframework.stereotype.Service;
 
 @Service
-public class AlwaysPermissiveWorkspaceAuthorizationService implements WorkspaceAuthorizationService {
+public class AlwaysPermissiveWorkspaceAuthorizationService
+    implements WorkspaceAuthorizationService {
 
   @Override
   public void requireMember(UserId userId, WorkspaceId workspaceId) {

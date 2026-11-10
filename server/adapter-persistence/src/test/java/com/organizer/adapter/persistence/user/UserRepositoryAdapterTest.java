@@ -1,27 +1,25 @@
 package com.organizer.adapter.persistence.user;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.organizer.adapter.persistence.AbstractIntegrationTest;
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.domain.user.Email;
 import com.organizer.domain.user.HashedPassword;
 import com.organizer.domain.user.User;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class UserRepositoryAdapaterTest extends AbstractIntegrationTest {
 
-  private final Clock fixedClock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
+  private final Clock fixedClock =
+      Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
 
-  @Autowired
-  UserRepositoryAdapter adapter;
+  @Autowired UserRepositoryAdapter adapter;
 
   @Test
   void savesAndFindsByEmailAndId() {
@@ -30,8 +28,7 @@ class UserRepositoryAdapaterTest extends AbstractIntegrationTest {
     HashedPassword userPassword = new HashedPassword("h4sh3d");
     String displayName = "Ada";
 
-    User user = User.register(
-        userId, userEmail, userPassword, displayName, fixedClock);
+    User user = User.register(userId, userEmail, userPassword, displayName, fixedClock);
 
     User saved = adapter.save(user);
 
@@ -52,5 +49,4 @@ class UserRepositoryAdapaterTest extends AbstractIntegrationTest {
 
     assertThat(adapter.existsByEmail(email)).isTrue();
   }
-
 }

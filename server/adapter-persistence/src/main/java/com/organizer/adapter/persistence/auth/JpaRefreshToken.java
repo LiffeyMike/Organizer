@@ -1,16 +1,14 @@
 package com.organizer.adapter.persistence.auth;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
-
-import jakarta.persistence.Table;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -19,8 +17,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "refresh_tokens")
 public class JpaRefreshToken {
 
-  @Id
-  private UUID id;
+  @Id private UUID id;
 
   @Column(name = "user_id", nullable = false)
   private UUID userId;
@@ -42,5 +39,4 @@ public class JpaRefreshToken {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
-
 }

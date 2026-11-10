@@ -1,16 +1,14 @@
 package com.organizer.adapter.persistence.user;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
+import java.time.Instant;
+import java.util.UUID;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -19,8 +17,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 public class JpaUser {
 
-  @Id
-  private UUID id;
+  @Id private UUID id;
 
   @Column(nullable = false, unique = true)
   private String email;
@@ -33,5 +30,4 @@ public class JpaUser {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
-
 }

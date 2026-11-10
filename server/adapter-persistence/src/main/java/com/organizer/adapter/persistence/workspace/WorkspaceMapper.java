@@ -1,11 +1,10 @@
 package com.organizer.adapter.persistence.workspace;
 
-import org.springframework.stereotype.Component;
-
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.coreconfig.id.WorkspaceId;
 import com.organizer.domain.workspace.Workspace;
 import com.organizer.domain.workspace.WorkspaceType;
+import org.springframework.stereotype.Component;
 
 @Component
 class WorkspaceMapper {

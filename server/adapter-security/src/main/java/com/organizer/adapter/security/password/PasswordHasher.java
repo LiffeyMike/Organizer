@@ -1,11 +1,10 @@
 package com.organizer.adapter.security.password;
 
+import com.organizer.application.port.out.PasswordHasherPort;
+import com.organizer.domain.user.HashedPassword;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import com.organizer.application.port.out.PasswordHasherPort;
-import com.organizer.domain.user.HashedPassword;
 
 @Component
 public class PasswordHasher implements PasswordHasherPort {

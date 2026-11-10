@@ -1,9 +1,8 @@
 package com.organizer.adapter.graphql.resolver;
 
+import com.organizer.application.PingUseCase;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
-
-import com.organizer.application.PingUseCase;
 
 @Controller
 public class PingController {

@@ -1,16 +1,14 @@
 package com.organizer.domain.workspace;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.organizer.coreconfig.id.UserId;
+import com.organizer.coreconfig.id.WorkspaceId;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
-
-import com.organizer.coreconfig.id.UserId;
-import com.organizer.coreconfig.id.WorkspaceId;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class WorkspaceTest {
 
@@ -20,8 +18,9 @@ class WorkspaceTest {
     UserId owner = new UserId(UUID.randomUUID());
     String ownerDisplayName = "Ada Lovelace";
 
-    Workspace workspace = Workspace.personalFor(new WorkspaceId(UUID.randomUUID()), owner, ownerDisplayName,
-        fixedClock);
+    Workspace workspace =
+        Workspace.personalFor(
+            new WorkspaceId(UUID.randomUUID()), owner, ownerDisplayName, fixedClock);
 
     assertThat(workspace.name()).isEqualTo("Ada Lovelace's Organizer");
     assertThat(workspace.type()).isEqualTo(WorkspaceType.PERSONAL);
