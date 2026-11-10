@@ -14,5 +14,6 @@ dependencies {
     testImplementation(libs.spring.boot.starter.test)
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation(libs.assertj.core)
+    testImplementation("jakarta.servlet:jakarta.servlet-api")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
