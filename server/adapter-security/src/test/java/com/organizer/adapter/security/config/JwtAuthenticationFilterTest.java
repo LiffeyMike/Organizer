@@ -91,7 +91,12 @@ class JwtAuthenticationFilterTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = { "Basic fkdajlsfjl", "Bearer ", "Bearer useless" })
+  @ValueSource(strings = {
+      "Basic fkdajlsfjl",
+      "Bearer ",
+      "Bearer useless",
+      "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
+  })
   void unusableHeaderLeavesContextEmpty(String header) throws Exception {
     request.addHeader("Authorization", header);
 

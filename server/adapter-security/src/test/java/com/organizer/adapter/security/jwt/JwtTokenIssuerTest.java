@@ -249,7 +249,7 @@ class JwtTokenIssuerTest {
   }
 
   @Nested
-  class initialIssuance {
+  class InitialIssuance {
 
     @Test
     void persistsExactlyOneRowWithTheRightShape() {
