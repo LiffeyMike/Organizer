@@ -7,6 +7,7 @@ import java.time.Instant;
 
 public record Workspace(
     WorkspaceId id, String name, WorkspaceType type, UserId createdBy, Instant createdAt) {
+
   public static Workspace personalFor(
       WorkspaceId id, UserId owner, String ownerDisplayName, Clock clock) {
     String worksaceName = ownerDisplayName + "'s Organizer";
