@@ -29,7 +29,7 @@ public class LoginUseCaseImpl implements LoginUseCase {
     this.userRepository = userRepository;
     this.passwordHasher = passwordHasher;
     this.tokenIssuer = tokenIssuer;
-    this.timingDecoy = new HashedPassword(UUID.randomUUID().toString());
+    this.timingDecoy = passwordHasher.hash(UUID.randomUUID().toString());
   }
 
   @Override

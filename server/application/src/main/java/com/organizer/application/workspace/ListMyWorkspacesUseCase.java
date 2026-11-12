@@ -1,4 +1,4 @@
-package com.organizer.application.user;
+package com.organizer.application.workspace;
 
 import com.organizer.coreconfig.id.UserId;
 import com.organizer.coreconfig.page.Page;
