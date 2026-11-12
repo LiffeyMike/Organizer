@@ -70,7 +70,7 @@ class PasswordHasherTest {
   void maxLengthPasswordHashesAndMatches() {
     String rawPassword = "a".repeat(72);
 
-    assertThat(hasher.matches(rawPassword, hasher.hash(rawPassword)));
+    assertThat(hasher.matches(rawPassword, hasher.hash(rawPassword))).isTrue();
   }
 
   @Test

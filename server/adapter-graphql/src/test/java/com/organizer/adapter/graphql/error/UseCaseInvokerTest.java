@@ -76,7 +76,7 @@ public class UseCaseInvokerTest {
   }
 
   @Test
-  void unauthenticatedExceptionPropogatesUncaught() {
+  void unauthenticatedExceptionPropagatesUncaught() {
     assertThatThrownBy(() ->
             invoker.invoke(() -> {
               throw new UnauthenticatedException("no token");

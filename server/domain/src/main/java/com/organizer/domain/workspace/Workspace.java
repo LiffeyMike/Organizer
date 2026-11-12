@@ -10,7 +10,7 @@ public record Workspace(
 
   public static Workspace personalFor(
       WorkspaceId id, UserId owner, String ownerDisplayName, Clock clock) {
-    String worksaceName = ownerDisplayName + "'s Organizer";
-    return new Workspace(id, worksaceName, WorkspaceType.PERSONAL, owner, clock.instant());
+    String workspaceName = ownerDisplayName + "'s Organizer";
+    return new Workspace(id, workspaceName, WorkspaceType.PERSONAL, owner, clock.instant());
   }
 }

@@ -43,7 +43,7 @@ public class LoginUseCaseImpl implements LoginUseCase {
 
     User user =
         found
-            .filter(canidate -> passwordMatches)
+            .filter(candidate -> passwordMatches)
             .orElseThrow(() -> new InvalidCredentialsException(INVALID_CREDENTIALS));
 
     TokenPair tokens = tokenIssuer.issueInitial(user.id(), user.email());

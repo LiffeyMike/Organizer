@@ -63,13 +63,13 @@ class RefreshTokenUseCaseImplTest {
   }
 
   @Test
-  void rejectedRefreshTokenPropogatesUntouched() {
+  void rejectedRefreshTokenPropagatesUntouched() {
     InvalidCredentialsException rejection =
         new InvalidCredentialsException("Invalid refresh token");
     when(tokenIssuer.rotateRefreshToken(PRESENTED)).thenThrow(rejection);
 
     assertThatThrownBy(() -> useCase.execute(PRESENTED))
-        .isInstanceOf(rejection.getClass())
+        .isSameAs(rejection)
         .hasMessage("Invalid refresh token");
 
     verify(tokenIssuer, never()).parseAccessToken(any());

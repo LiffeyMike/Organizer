@@ -88,7 +88,7 @@ class WorkspaceAuthorizationServiceImplTest {
 
       assertThatThrownBy(() -> service.requireOwner(NEO, WORKSPACE))
           .isInstanceOf(ForbiddenException.class)
-          .hasMessage(WorkspaceAuthorizationServiceImpl.NOT_AN_OWNER);
+          .hasMessage(WorkspaceAuthorizationServiceImpl.NOT_THE_OWNER);
     }
 
     @Test

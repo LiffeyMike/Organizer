@@ -15,6 +15,7 @@ public class GetCurrentUserUseCaseImpl implements GetCurrentUserUseCase {
     this.userRepository = userRepository;
   }
 
+  @Override
   public User execute(UserId userId) {
     return userRepository
         .findById(userId)

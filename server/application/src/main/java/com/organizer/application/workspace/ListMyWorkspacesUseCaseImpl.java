@@ -8,7 +8,7 @@ import com.organizer.domain.workspace.Workspace;
 import org.springframework.stereotype.Service;
 
 @Service
-class ListMyWorkspacesUseCaseImpl implements ListMyWorkspacesUseCase {
+public class ListMyWorkspacesUseCaseImpl implements ListMyWorkspacesUseCase {
 
   private final WorkspaceRepository workspaceRepository;
 

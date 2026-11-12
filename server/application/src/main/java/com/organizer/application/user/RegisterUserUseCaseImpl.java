@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class RegisterUserUseCaseImpl implements RegisterUserUseCase {
+public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
 
   private final UserRepository userRepository;
   private final WorkspaceRepository workspaceRepository;
@@ -59,11 +59,11 @@ class RegisterUserUseCaseImpl implements RegisterUserUseCase {
     User user =
         User.register(new UserId(UUID.randomUUID()), email, hashed, command.displayName(), clock);
 
-    userRepository.save(user);
+    User savedUser = userRepository.save(user);
 
     Workspace workspace =
         Workspace.personalFor(
-            new WorkspaceId(UUID.randomUUID()), user.id(), user.displayName(), clock);
+            new WorkspaceId(UUID.randomUUID()), savedUser.id(), savedUser.displayName(), clock);
 
     workspaceRepository.save(workspace);
 
@@ -71,13 +71,13 @@ class RegisterUserUseCaseImpl implements RegisterUserUseCase {
         new WorkspaceMembership(
             new MembershipId(UUID.randomUUID()),
             workspace.id(),
-            user.id(),
+            savedUser.id(),
             Role.OWNER,
             clock.instant());
 
     membershipRepository.save(membership);
 
-    TokenPair tokens = tokenIssuer.issueInitial(user.id(), user.email());
-    return new AuthResult(user, tokens);
+    TokenPair tokens = tokenIssuer.issueInitial(savedUser.id(), savedUser.email());
+    return new AuthResult(savedUser, tokens);
   }
 }

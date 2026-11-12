@@ -196,8 +196,7 @@ class RegisterUserUseCaseImplTest {
       when(userRepository.existsByEmail(any())).thenReturn(false);
       when(passwordHasher.hash(PASSWORD)).thenThrow(tooLong);
 
-      assertThatThrownBy(() -> useCase.execute(validCommand()))
-          .isInstanceOf(ValidationException.class);
+      assertThatThrownBy(() -> useCase.execute(validCommand())).isSameAs(tooLong);
 
       verify(userRepository, never()).save(any());
       verifyNoInteractions(workspaceRepository, membershipRepository, tokenIssuer);
@@ -225,17 +224,17 @@ class RegisterUserUseCaseImplTest {
       verify(userRepository, never()).save(any());
       verifyNoInteractions(workspaceRepository, membershipRepository, tokenIssuer);
     }
+  }
 
-    @Test
-    void executeRunsInOneTransaction() throws NoSuchMethodException {
-      Transactional tx =
-          RegisterUserUseCaseImpl.class
-              .getMethod("execute", RegisterCommand.class)
-              .getAnnotation(Transactional.class);
+  @Test
+  void executeRunsInOneTransaction() throws NoSuchMethodException {
+    Transactional tx =
+        RegisterUserUseCaseImpl.class
+            .getMethod("execute", RegisterCommand.class)
+            .getAnnotation(Transactional.class);
 
-      assertThat(tx)
-          .as("user, workspace, and membership must commit or rollback together")
-          .isNotNull();
-    }
+    assertThat(tx)
+        .as("user, workspace, and membership must commit or rollback together")
+        .isNotNull();
   }
 }
