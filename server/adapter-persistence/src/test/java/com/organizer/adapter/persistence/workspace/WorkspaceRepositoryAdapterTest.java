@@ -107,4 +107,33 @@ public class WorkspaceRepositoryAdapterTest extends AbstractIntegrationTest {
 
     return saved;
   }
+
+  @Test
+  void backwardPageReturnsTheRowsBeforeTheCursorInCreatedOrder() {
+    Workspace first = saveWorkspaceWithMembership(Instant.parse("2026-01-01T00:00:00Z"));
+    Workspace second = saveWorkspaceWithMembership(Instant.parse("2026-01-02T00:00:00Z"));
+    Workspace third = saveWorkspaceWithMembership(Instant.parse("2026-01-03T00:00:00Z"));
+
+    Page<Workspace> page =
+        workspaces.findPageForUser(
+            owner.id(), new PageQuery(2, third.createdAt(), third.id().id(), true));
+
+    assertThat(page.items()).containsExactly(first, second);
+    assertThat(page.hasNextPage()).isTrue();
+    assertThat(page.hasPreviousPage()).isFalse();
+  }
+
+  @Test
+  void backwardPageWithoutACursorReturnsTheNewestRowsInCreatedOrder() {
+    saveWorkspaceWithMembership(Instant.parse("2026-01-01T00:00:00Z"));
+    Workspace second = saveWorkspaceWithMembership(Instant.parse("2026-01-02T00:00:00Z"));
+    Workspace third = saveWorkspaceWithMembership(Instant.parse("2026-01-03T00:00:00Z"));
+
+    Page<Workspace> page =
+        workspaces.findPageForUser(owner.id(), new PageQuery(2, null, null, true));
+
+    assertThat(page.items()).containsExactly(second, third);
+    assertThat(page.hasPreviousPage()).isTrue();
+    assertThat(page.hasNextPage()).isFalse();
+  }
 }

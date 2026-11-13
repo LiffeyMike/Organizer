@@ -47,6 +47,10 @@ public class WorkspaceRepositoryAdapter implements WorkspaceRepository {
         (hasMore ? rows.subList(0, pageQuery.limit()) : rows)
             .stream().map(mapper::toDomain).toList();
 
+    if (pageQuery.backward()) {
+      items = items.reversed();
+    }
+
     return pageQuery.backward()
         ? new Page<>(items, hasCursor, hasMore)
         : new Page<>(items, hasMore, hasCursor);

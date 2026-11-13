@@ -34,7 +34,26 @@ class GlobalIdTest {
 
   @Test
   void decodingANonUuidIdSegmentThrows() {
-    assertThatThrownBy(() -> GlobalId.decode("gid://organizer/Widget/not-a-uuid", "Wdiget"))
+    assertThatThrownBy(() -> GlobalId.decode("gid://organizer/Widget/not-a-uuid", "Widget"))
+        .isInstanceOf(BadUserInputException.class);
+  }
+
+  @Test
+  void typeNameReturnsTheEmbeddedType() {
+    String globalId = GlobalId.encode("Widget", UUID.randomUUID());
+
+    assertThat(GlobalId.typeNameOf(globalId)).isEqualTo("Widget");
+  }
+
+  @Test
+  void typeNameOfRejectsAMissingPrefix() {
+    assertThatThrownBy(() -> GlobalId.typeNameOf("not-a-global-id" + UUID.randomUUID()))
+        .isInstanceOf(BadUserInputException.class);
+  }
+
+  @Test
+  void typeNameOfRejectsAnEmptyTypeSegment() {
+    assertThatThrownBy(() -> GlobalId.typeNameOf("gid://organizer//" + UUID.randomUUID()))
         .isInstanceOf(BadUserInputException.class);
   }
 }
