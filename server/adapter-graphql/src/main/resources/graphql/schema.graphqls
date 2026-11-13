@@ -27,4 +27,76 @@ type Query {
   ping: String!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+  me: User!
+  myWorkspaces(first: Int, after: String, last: Int, before: String): WorkspaceConnection!
+}
+
+type Mutation {
+  userRegister(input: UserRegisterInput!): UserRegisterPayload!
+  sessionCreate(input: SessionCreateInput!): SessionCreatePayload!
+  sessionRefresh(input: SessionRefreshInput!): SessionRefreshPayload!
+}
+
+type User implements Node {
+  id: ID!
+  email: String!
+  displayName: String!
+}
+
+enum WorkspaceType {
+  PERSONAL
+  SHARED
+}
+
+type Workspace implements Node {
+  id: ID!
+  name: String!
+  type: WorkspaceType!
+}
+
+type WorkspaceConnection {
+  edges: [WorkspaceEdge!]!
+  pageInfo: PageInfo!
+}
+
+type WorkspaceEdge {
+  cursor: String!
+  node: Workspace!
+}
+
+type Session {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+input UserRegisterInput {
+  email: String!
+  password: String!
+  displayName: String!
+}
+
+type UserRegisterPayload {
+  user: User
+  session: Session
+  userErrors: [UserError!]!
+}
+
+input SessionCreateInput {
+  email: String!
+  password: String!
+}
+
+type SessionCreatePayload {
+  session: Session
+  userErrors: [UserError!]!
+}
+
+input SessionRefreshInput {
+  refreshToken: String!
+}
+
+type SessionRefreshPayload {
+  session: Session
+  userErrors: [UserError!]!
 }

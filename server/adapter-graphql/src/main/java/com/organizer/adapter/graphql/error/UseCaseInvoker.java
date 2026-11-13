@@ -8,7 +8,9 @@ import com.organizer.coreconfig.error.NotFoundException;
 import com.organizer.coreconfig.error.ValidationException;
 import java.util.List;
 import java.util.function.Supplier;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UseCaseInvoker {
 
   public <T> MutationResult<T> invoke(Supplier<T> useCaseCall) {

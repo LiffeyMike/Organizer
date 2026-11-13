@@ -4,7 +4,7 @@ import com.organizer.adapter.graphql.error.BadUserInputException;
 import java.util.UUID;
 
 public final class GlobalId {
-  private static String PREFIX = "gid://organizer/";
+  private static final String PREFIX = "gid://organizer/";
 
   private GlobalId() {}
 
@@ -12,27 +12,35 @@ public final class GlobalId {
     return PREFIX + typename + "/" + id;
   }
 
-  public static UUID decode(String globalId, String expectedTypeName) {
+  public static String typeNameOf(String globalId) {
     if (globalId == null || !globalId.startsWith(PREFIX)) {
-      throw new BadUserInputException("Malformed id: " + globalId);
+      throw malformed(globalId);
     }
 
-    String remainder = globalId.substring(PREFIX.length());
-    int slash = remainder.indexOf("/");
-    if (slash < 0) {
-      throw new BadUserInputException("Malformed id: " + globalId);
+    int slash = globalId.indexOf('/', PREFIX.length());
+    if (slash <= PREFIX.length()) {
+      throw malformed(globalId);
     }
-    String typeName = remainder.substring(0, slash);
-    String rawId = remainder.substring(slash + 1);
+
+    return globalId.substring(PREFIX.length(), slash);
+  }
+
+  public static UUID decode(String globalId, String expectedTypeName) {
+    String typeName = typeNameOf(globalId);
+
     if (!typeName.equals(expectedTypeName)) {
       throw new BadUserInputException(
           "Expected a " + expectedTypeName + " id but got a " + typeName + " id");
     }
 
     try {
-      return UUID.fromString(rawId);
+      return UUID.fromString(globalId.substring(PREFIX.length() + typeName.length() + 1));
     } catch (IllegalArgumentException e) {
-      throw new BadUserInputException("Malformed id: " + globalId);
+      throw malformed(globalId);
     }
+  }
+
+  private static BadUserInputException malformed(String globalId) {
+    return new BadUserInputException("Malformed id: " + globalId);
   }
 }

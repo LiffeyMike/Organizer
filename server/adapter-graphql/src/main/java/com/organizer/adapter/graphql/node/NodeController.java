@@ -1,12 +1,16 @@
 package com.organizer.adapter.graphql.node;
 
+import com.organizer.adapter.graphql.context.AuthContext;
 import com.organizer.adapter.graphql.error.BadUserInputException;
 import com.organizer.adapter.graphql.id.GlobalId;
+import com.organizer.adapter.security.AuthenticatedUser;
+import com.organizer.coreconfig.id.UserId;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.ContextValue;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
@@ -17,31 +21,32 @@ public class NodeController {
 
   public NodeController(List<NodeResolver> resolvers) {
     this.resolversByType =
-        resolvers.stream().collect(Collectors.toMap(NodeResolver::typeName, r -> r));
+        resolvers.stream().collect(Collectors.toMap(NodeResolver::typeName, Function.identity()));
   }
 
   @QueryMapping
-  public Object node(@Argument String id) {
-    return resolveOne(id);
+  public Node node(
+      @Argument String id,
+      @ContextValue(name = AuthContext.PRINCIPAL_KEY, required = false)
+          AuthenticatedUser principal) {
+    return resolveOne(AuthContext.requireUserId(principal), id);
   }
 
   @QueryMapping
-  public List<Object> nodes(@Argument List<String> ids) {
-    return ids.stream().map(this::resolveOne).toList();
+  public List<Node> nodes(
+      @Argument List<String> ids,
+      @ContextValue(name = AuthContext.PRINCIPAL_KEY, required = false)
+          AuthenticatedUser principal) {
+    UserId callerId = AuthContext.requireUserId(principal);
+    return ids.stream().map(id -> resolveOne(callerId, id)).toList();
   }
 
-  private Object resolveOne(String globalId) {
-    String typeName = extractTypeName(globalId);
+  private Node resolveOne(UserId callerId, String globalId) {
+    String typeName = GlobalId.typeNameOf(globalId);
     NodeResolver resolver = resolversByType.get(typeName);
     if (resolver == null) {
       throw new BadUserInputException("Unknown type in id: " + globalId);
     }
-    UUID id = GlobalId.decode(globalId, typeName);
-    return resolver.resolve(id).orElse(null);
-  }
-
-  private String extractTypeName(String globalId) {
-    String withoutPrefix = globalId.substring("gid://organizer/".length());
-    return withoutPrefix.substring(0, withoutPrefix.indexOf("/"));
+    return resolver.resolve(callerId, GlobalId.decode(globalId, typeName)).orElse(null);
   }
 }
