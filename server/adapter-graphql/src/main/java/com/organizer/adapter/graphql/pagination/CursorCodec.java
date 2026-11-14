@@ -9,8 +9,6 @@ import java.util.UUID;
 public final class CursorCodec {
   private CursorCodec() {}
 
-  public record CursorPosition(Instant sortKey, UUID id) {}
-
   public static String encode(Instant sortKey, UUID id) {
     String raw = sortKey.toString() + ":" + id;
     return Base64.getUrlEncoder()

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.organizer.adapter.graphql.error.BadUserInputException;
-import com.organizer.adapter.graphql.pagination.CursorCodec.CursorPosition;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
